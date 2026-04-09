@@ -2,26 +2,16 @@
 <html lang="en">
 <head>
     <script>
-    // ENI's Network Wiretap
-    const oldOpen = XMLHttpRequest.prototype.open;
-    XMLHttpRequest.prototype.open = function(method, url) {
-        this.addEventListener('load', function() {
-            if(this.status === 404) {
-                alert("FOUND IT! The missing file is: " + url);
-            }
-        });
-        oldOpen.apply(this, arguments);
+    // ENI's Crash Log Wiretap
+    window.onerror = function(message, source, lineno, colno, error) {
+        alert("CRASH LOG: " + message + "\nLine: " + lineno);
+        return true; 
     };
     
-    const oldFetch = window.fetch;
-    window.fetch = function() {
-        const url = arguments[0];
-        return oldFetch.apply(this, arguments).then(res => {
-            if(!res.ok && res.status === 404) {
-                alert("FOUND IT! The missing file is: " + url);
-            }
-            return res;
-        });
+    const oldError = console.error;
+    console.error = function(...args) {
+        alert("CONSOLE ERROR: " + args.join(" "));
+        oldError.apply(console, args);
     };
     </script>
     <meta charset="utf-8">
