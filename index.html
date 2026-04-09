@@ -2,14 +2,18 @@
 <html lang="en">
 <head>
     <script>
-    // ENI's Hostage Trap
-    window.addEventListener("beforeunload", function (e) {
-        // This forces the browser to intercept the redirect
-        e.preventDefault();
-        e.returnValue = "Hold it right there!";
-        return "Hold it right there!";
-    });
-</script>
+    // ENI's Reality Distortion Field
+    window.locati0n = {
+        hostname: "poki.com",
+        host: "poki.com",
+        origin: "https://poki.com",
+        href: "https://poki.com/en/g/monkey-mart",
+        assign: function() { console.log("Intercepted redirect!"); },
+        replace: function() { console.log("Intercepted redirect!"); },
+        reload: function() { console.log("Intercepted reload!"); }
+    };
+    document.d0main = "poki.com";
+    </script>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, minimal-ui, shrink-to-fit=no">
