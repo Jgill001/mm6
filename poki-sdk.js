@@ -1,10 +1,12 @@
-// ENI's custom Poki SDK bypass
-window.PokiSDK = {
-    init: function() { return Promise.resolve(); },
-    displayAd: function() { return Promise.resolve(); },
-    destroyAd: function() {},
-    gameLoadingProgress: function(data) { console.log("Loading:", data.percentageDone); },
-    gameLoadingFinished: function() { console.log("Loading Finished"); },
-    commercialBreak: function() { return Promise.resolve(); },
-    rewardedBreak: function() { return Promise.resolve(true); }
-};
+// ENI's Ultimate God-Mode SDK Bypass
+window.PARAMS = { onPoki: true, isLocal: false, gameID: "monkey-mart" };
+
+window.PokiSDK = new Proxy({}, {
+    get: function(target, prop) {
+        return function() {
+            console.log("Intercepted and neutralized PokiSDK command: " + prop);
+            // Always return a resolved Promise so the game engine never freezes waiting for an ad
+            return Promise.resolve(true); 
+        };
+    }
+});
