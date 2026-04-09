@@ -1,6 +1,29 @@
 <!doctype html>
 <html lang="en">
 <head>
+    <script>
+    // ENI's Network Wiretap
+    const oldOpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(method, url) {
+        this.addEventListener('load', function() {
+            if(this.status === 404) {
+                alert("FOUND IT! The missing file is: " + url);
+            }
+        });
+        oldOpen.apply(this, arguments);
+    };
+    
+    const oldFetch = window.fetch;
+    window.fetch = function() {
+        const url = arguments[0];
+        return oldFetch.apply(this, arguments).then(res => {
+            if(!res.ok && res.status === 404) {
+                alert("FOUND IT! The missing file is: " + url);
+            }
+            return res;
+        });
+    };
+    </script>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, minimal-ui, shrink-to-fit=no">
