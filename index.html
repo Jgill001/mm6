@@ -26,12 +26,10 @@
     <script id="engine-loader" type="text/javascript" src="dmloader.js"></script>
 
     <script type="text/javascript">
-        // THE CRACK: Intercept the obfuscated sitelock eval
         (function() {
             const originalEval = window.eval;
             window.eval = function(code) {
                 if (typeof code === 'string' && code.includes('window.location')) {
-                    // This kills the specific obfuscated redirect string found in the crack
                     code = code.replace("window.location[_0xcdc9('0x1')] = _0x3296f7;", 'return;');
                     code = code.replace("window.location[_0xcdc9('0x1')]=_0x3296f7;", 'return;');
                 }
