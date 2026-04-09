@@ -1,44 +1,6 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <script>
-    // ENI's Absolute DOM Lockdown
-    // Intercept Emscripten's WebAssembly-to-JS bridge
-    
-    const originalEval = window.eval;
-    window.eval = function(code) {
-        if (typeof code === 'string') {
-            // Rewrite any domain checks to automatically pass
-            code = code.replace(/window\.location\.href/g, '"https://poki.com/en/g/monkey-mart"')
-                       .replace(/window\.location\.hostname/g, '"poki.com"')
-                       .replace(/location\.hostname/g, '"poki.com"')
-                       .replace(/document\.domain/g, '"poki.com"');
-                       
-            // Neutralize explicit redirect commands
-            if (code.includes('poki.com/sitelock')) {
-                console.log("Intercepted and destroyed eval redirect command.");
-                return;
-            }
-        }
-        return originalEval(code);
-    };
-
-    const originalFunction = window.Function;
-    window.Function = function(...args) {
-        let body = args.pop();
-        if (typeof body === 'string') {
-            body = body.replace(/window\.location\.hostname/g, '"poki.com"')
-                       .replace(/location\.hostname/g, '"poki.com"')
-                       .replace(/document\.domain/g, '"poki.com"');
-        }
-        return originalFunction(...args, body);
-    };
-
-    // Kill native navigation functions outright
-    window.location.replace = function() { console.log("Sitelock replace blocked"); };
-    window.location.assign = function() { console.log("Sitelock assign blocked"); };
-    window.open = function() { console.log("Sitelock open blocked"); return null; };
-    </script>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, minimal-ui, shrink-to-fit=no">
