@@ -2,150 +2,78 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, minimal-ui, shrink-to-fit=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>MonkeyMart</title>
-    <style type="text/css">
-        body { position: fixed; margin:0; padding:0; background-color: #ffffff; }
-        .canvas-app-container { width: 100%; height: 100%; position: absolute; align-items: center; justify-content: center; overflow: hidden; background: #00BB61; }
-        .canvas-app-container:-webkit-full-screen { width: auto; height: auto; }
-        #canvas { outline: none; border: 0; width: 100%; vertical-align: bottom; }
-        #canvas-container { position: relative; }
-        canvas:focus, canvas:active { outline: none; border: 0; ie-dummy: expression(this.hideFocus=true); -moz-outline-style: none; }
-        div { -webkit-tap-highlight-color: rgba(0,0,0,0); -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
-        .canvas-app-progress { position: absolute; background-color: #0A8A40; height: 30px; margin-top: -30px; width: 100%; }
-        .canvas-app-progress-bar { font-size: 12px; height: 30px; color: rgb(255, 255, 255); background-color: #FFE333; text-align: center; line-height: 20px; }
-        .buttons-background { background-color: #ffffff; width: 100%; height: 42px; }
-        .canvas-app-canvas { background-repeat: no-repeat; background-position: center; background-position: top; background-size: cover; background-image: url("bg_loading.png"); }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Monkey Mart - Private Server</title>
+    <style>
+        body { margin:0; padding:0; background-color: #00BB61; overflow: hidden; }
+        .canvas-app-container { width: 100%; height: 100%; position: absolute; display: flex; align-items: center; justify-content: center; }
+        #canvas { width: 100%; height: 100%; }
+        #progress-bar-root { position: absolute; bottom: 16%; left: 50%; transform: translateX(-50%); visibility: hidden; z-index: 4; }
+        #progress-bar-bg { width: 300px; }
+        #progress-bar-fg { position:absolute; left: 0; width: 300px; clip: rect(0px,0px,0px,0px); }
     </style>
-    <script defer src="poki-sdk.js" onload="poki_sdk_loaded()"></script>
-    <script type="text/javascript" src="GameAnalytics.js"></script>
+    <script src="./poki-sdk.js"></script>
 </head>
 <body>
     <div id="app-container" class="canvas-app-container">
-        <div id="canvas-container" class="canvas-app-canvas-container">
-            <canvas id="canvas" class="canvas-app-canvas" tabindex="1" width="960" height="640"></canvas>
-        </div>
-        <div class="buttons-background"></div>
-        <div id="progress-bar-root" style="position: absolute; bottom: 16%; left: 50%; visibility: hidden; z-index: 4;">
-            <img id="progress-bar-bg" src="load_bar_bg.png"> 
-            <img id="progress-bar-fg" src="load_bar_fg.png" style="position:absolute; clip: rect(0px,0px,0px,0px);">
+        <canvas id="canvas" tabindex="1"></canvas>
+        <div id="progress-bar-root">
+            <img id="progress-bar-bg" src="load_bar_bg.png">
+            <img id="progress-bar-fg" src="load_bar_fg.png">
         </div>
     </div>
-    
-    <script id="engine-loader" type="text/javascript" src="dmloader.js"></script>
-    <script id="my-setup" type="text/javascript">
-        var globalLoadingPercentage = 0; 
-        var globalLerpLoadingPercentage = 0; 
 
-        window.my_game = {
-            set_percentage: function(percentage) { ProgressView.updateProgress(percentage); },
-            reset_percentage: function() { globalLoadingPercentage = 0; globalLerpLoadingPercentage = 0; }
+    <script id="engine-loader" type="text/javascript" src="dmloader.js"></script>
+
+    <script type="text/javascript">
+        // THE CRACK: Intercept the obfuscated sitelock eval
+        (function() {
+            const originalEval = window.eval;
+            window.eval = function(code) {
+                if (typeof code === 'string' && code.includes('window.location')) {
+                    // This kills the specific obfuscated redirect string found in the crack
+                    code = code.replace("window.location[_0xcdc9('0x1')] = _0x3296f7;", 'return;');
+                    code = code.replace("window.location[_0xcdc9('0x1')]=_0x3296f7;", 'return;');
+                }
+                return originalEval(code);
+            };
+        })();
+
+        var extra_params = {
+            archive_location_filter: function(path) {
+                return ("archive" + path);
+            },
+            engine_arguments: ["--verify-graphics-calls=false"],
+            custom_heap_size: 134217728,
+            full_screen_container: "#app-container",
+            disable_context_menu: true
         };
 
-        var is_iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        var buttonHeight = 0;
-        var prevInnerWidth = -1;
-        var prevInnerHeight = -1;
+        Module['INITIAL_MEMORY'] = extra_params.custom_heap_size;
+        Module['onRuntimeInitialized'] = function() {
+            Module.runApp("canvas", extra_params);
+        };
 
-        function resize_game_canvas() {
-            if (is_iOS) { window.scrollTo(0, 0); }
+        Module["locateFile"] = function(path, scriptDirectory) {
+            if (path.includes("dmengine")) return "MonkeyMart.wasm";
+            return scriptDirectory + path;
+        };
 
-            var app_container = document.getElementById('app-container');
-            var game_canvas = document.getElementById('canvas');
-            var progress_bar_root = document.getElementById('progress-bar-root');
-            var progress_bar_fg = document.getElementById('progress-bar-fg');
-            var progress_bar_bg = document.getElementById('progress-bar-bg');
-            var innerWidth = window.innerWidth;
-            var innerHeight = window.innerHeight - buttonHeight;
-            var dpi = window.devicePixelRatio || 1;
-
-            if (prevInnerWidth == innerWidth && prevInnerHeight == innerHeight) { return; }
-            prevInnerWidth = innerWidth;
-            prevInnerHeight = innerHeight;
-            
-            var width = innerWidth;
-            var height = innerHeight;
-
-            app_container.style.width = width + "px";
-            app_container.style.height = height + buttonHeight + "px";
-            game_canvas.width = Math.floor(width * dpi);
-            game_canvas.height = Math.floor(height * dpi);
-
-            var bar_h = width < height ? width : height;
-            progress_bar_bg.width = Math.min(Math.ceil(bar_h * 0.06 * 300 / 24), width * 0.8);
-            progress_bar_bg.style.marginLeft = -progress_bar_bg.width / 2 + "px";
-            progress_bar_fg.width = Math.ceil(progress_bar_bg.width * 1);
-            progress_bar_fg.style.marginTop = (progress_bar_bg.width * 0) * (0) / 2 + "px";
-            progress_bar_fg.style.marginLeft = -progress_bar_bg.width / 2 - progress_bar_fg.width / 2 + "px";
-            progress_bar_root.style.bottom = Math.ceil(height * 0.08 + buttonHeight) + "px";
-        }
-        resize_game_canvas();
-        CUSTOM_PARAMETERS['resize_window_callback'] = resize_game_canvas;
-    </script>
-    <script id="engine-start" type="text/javascript">
-        ProgressView.updateProgress = function(percentage) {
-            Progress.notifyListeners(percentage);
-            if (globalLoadingPercentage > percentage) { percentage = globalLoadingPercentage }
-            globalLoadingPercentage = percentage; 
-
+        // Standard Progress Bar Logic
+        Progress.updateProgress = function(percentage) {
             var fg = document.getElementById('progress-bar-fg');
-            fg.style.clip = "rect(0px," + fg.width * percentage / 100 + "px," + fg.height + "px," + "0px)"
-
-            if (isNaN(percentage)) {
-                globalLoadingPercentage = 100; 
-                var progress_bar_root = document.getElementById('progress-bar-root');
-                progress_bar_root.style.visibility = "hidden";
+            if (fg) {
+                fg.style.clip = "rect(0px," + (300 * percentage / 100) + "px, 30px, 0px)";
+            }
+            if (isNaN(percentage) || percentage >= 100) {
+                document.getElementById('progress-bar-root').style.visibility = "hidden";
             }
         };
-
-        ProgressView.addProgress = function() {
-            var progress_bar_root = document.getElementById('progress-bar-root');
-            progress_bar_root.style.visibility = "visible"
-        }
-
-        ProgressView.removeProgress = function() {
-            var progress_bar_root = document.getElementById('progress-bar-root');
-            progress_bar_root.style.visibility = "hidden";
-            Module.canvas.style.background = "";
-        }
+        Progress.addProgress = function() { document.getElementById('progress-bar-root').style.visibility = "visible"; };
+        Progress.removeProgress = function() { document.getElementById('progress-bar-root').style.visibility = "hidden"; };
 
         EngineLoader.load("canvas", "MonkeyMart");
     </script>
-    <script id="poki-sdk-setup" type="text/javascript">
-        var isWasmLoaded = false;
-        var isPokiSDKInited = false;
-        var runFunc = function() {
-            if (isPokiSDKInited && isWasmLoaded) {
-                Module.runApp("canvas");
-            }
-        }
-        Module['onRuntimeInitialized'] = function() {
-            isWasmLoaded = true;
-            runFunc();
-        };
-
-        function poki_sdk_loaded() {
-            var data = {};
-            var isLoadFinished = false;
-            Progress.addListener(function(percentage) {
-                data.percentageDone = percentage / 100;
-                if (!isLoadFinished)
-                    PokiSDK.gameLoadingProgress(data);
-                if (percentage == 100 && !isLoadFinished) {
-                    PokiSDK.gameLoadingFinished();
-                    isLoadFinished = true;
-                }
-            });
-            PokiSDK.init().then(() => {
-                isPokiSDKInited = true;
-                runFunc();
-            }, () => {
-                isPokiSDKInited = true;
-                runFunc();
-            });
-        }
-    </script>
+    <script type="text/javascript" src="GameAnalytics.js"></script>
 </body>
 </html>
