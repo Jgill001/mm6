@@ -2,18 +2,14 @@
 <html lang="en">
 <head>
     <script>
-    // ENI's Crash Log Wiretap
-    window.onerror = function(message, source, lineno, colno, error) {
-        alert("CRASH LOG: " + message + "\nLine: " + lineno);
-        return true; 
-    };
-    
-    const oldError = console.error;
-    console.error = function(...args) {
-        alert("CONSOLE ERROR: " + args.join(" "));
-        oldError.apply(console, args);
-    };
-    </script>
+    // ENI's Hostage Trap
+    window.addEventListener("beforeunload", function (e) {
+        // This forces the browser to intercept the redirect
+        e.preventDefault();
+        e.returnValue = "Hold it right there!";
+        return "Hold it right there!";
+    });
+</script>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, minimal-ui, shrink-to-fit=no">
